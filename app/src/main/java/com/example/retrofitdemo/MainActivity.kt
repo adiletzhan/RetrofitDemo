@@ -2,6 +2,7 @@ package com.example.retrofitdemo
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.liveData
@@ -10,20 +11,33 @@ import retrofit2.Response
 
 
 class MainActivity : AppCompatActivity() {
+
     private lateinit var binding: ActivityMainBinding
+    private lateinit var retService: AlbumService
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        val view = binding.root
-        setContentView(view)
+        viewBinding()
 
-        val retService: AlbumService = RetrofitInstance
+        retService = RetrofitInstance
             .getRetrofitInstance()
             .create(AlbumService::class.java)
 
+        getRequestWithQueryParameters()
+        //getRequestWithPathParameters()
+
+    }
+
+    private fun viewBinding(){
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        val view = binding.root
+        setContentView(view)
+    }
+
+    private fun getRequestWithQueryParameters(){
         val responseLiveData: LiveData<Response<Albums>> = liveData {
-            val response = retService.getAlbums()
+            //val response = retService.getAlbums()
+            val response = retService.getSortedAlbums(3)
             emit(response)
         }
 
@@ -41,5 +55,17 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
+    private fun getRequestWithPathParameters(){
+        //path parameter example
+        val pathResponse : LiveData<Response<AlbumsItem>> = liveData {
+            val response: Response<AlbumsItem> = retService.getAlbum(3)
+            emit(response)
+        }
+
+        pathResponse.observe(this, Observer {
+            val title: String? = it.body()?.title
+            Toast.makeText(applicationContext, title, Toast.LENGTH_LONG ).show()
+        })
+    }
 
 }
